@@ -20,7 +20,7 @@ const int MODE_COUNT = 2;
 const int MODE_EDITOR = 0, MODE_KEYPRESS = 1;
 
 unsigned int editor_pos = 14;
-char editor_string[256] = "Hello world! :)";
+char editor_string[256] = "Hello world!"
 
 /* All this function does is clear and show the screen again. */
 void show_screen(int);
