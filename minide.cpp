@@ -14,13 +14,14 @@ const int UP_KEY    = 259,
 		  DOWN_KEY  = 258,
 		  LEFT_KEY  = 260,
 		  RIGHT_KEY = 261;
+const int CTRL_X    = 24;
 
-int mode;
+int mode = 1;
 const int MODE_COUNT = 2;
 const int MODE_EDITOR = 0, MODE_KEYPRESS = 1;
 
-unsigned int editor_pos = 14;
-char editor_string[256] = "Hello world!"
+unsigned int editor_pos = 11;
+char editor_string[256] = "Hello world!";
 
 /* All this function does is clear and show the screen again. */
 void show_screen(int);
@@ -35,12 +36,12 @@ void mode_keypress(int b);
 void mode_editor(int b);
 
 /* Finds the amount of newline characters within /string/. */
-int lines(char*);
+int lines(char* string);
 
 /* Get the current line a character at index /i/ is in. */
 int get_line(char* s, int i);
 
-/* Gets */
+/* Gets the position of an index (epos) in a line.*/
 int get_line_pos(char* s, int epos);
 
 int main()
@@ -59,6 +60,7 @@ int main()
 	
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
+	init_pair(3, COLOR_RED, COLOR_BLACK);
 	
 	while (true)
 	{
@@ -72,7 +74,7 @@ int main()
 void show_screen(int b)
 {
 	erase();
-	if (b == '`')
+	if (b == CTRL_X)
 	{
 		mode++;
 		if (mode == MODE_COUNT) mode = 0;
@@ -114,24 +116,41 @@ void mode_keypress(int b)
 void mode_editor(int b)
 {
 	int length = strlen(editor_string);
+	if (b == CTRL_X)
+	{
+		return;
+	}
 	if (b == BKSPACE)
 	{
 		if (length > 0)
 		{
-			editor_string[length-1] = '\0';
-			editor_pos--;
+			if (editor_pos < length)
+			{
+				for (int i = length; i > editor_pos; i--)
+				{
+					editor_string[i-1] = editor_string[i];
+				}
+				editor_pos--;
+			} else {
+				editor_string[length - 1] = '\0';
+				editor_pos--;
+			}
+			if (editor_pos < 0) editor_pos = 0;
 		}
 	}
 	else if (b == LEFT_KEY) // ?
 	{
 		if (editor_pos > 0) editor_pos--;
-		move(get_line(editor_string, editor_pos), get_line_pos(editor_string, editor_pos));
+		
+		move(get_line(editor_string, editor_pos),
+			get_line_pos(editor_string, editor_pos));
 	}
 	else if (b == RIGHT_KEY)
 	{
 		if (editor_pos < strlen(editor_string)) {
 			editor_pos++;
-			move(get_line(editor_string, editor_pos), get_line_pos(editor_string, editor_pos));
+			move(get_line(editor_string, editor_pos),
+				get_line_pos(editor_string, editor_pos));
 		}
 	}
 	else
@@ -141,7 +160,7 @@ void mode_editor(int b)
 			editor_string[editor_pos] = b;
 			editor_string[editor_pos + 1] = '\0';
 		} else {
-			for (int i = strlen(editor_string); i > editor_pos-1; i--)
+			for (int i = strlen(editor_string); i > editor_pos - 1; i--)
 			{
 				editor_string[i + 1] = editor_string[i];
 			}
@@ -151,17 +170,21 @@ void mode_editor(int b)
 		editor_pos++;
 	}
 	
-	int str_pos      = 0;
-	int str_len      = strlen(editor_string);
-	while (1)
-	{
-		int current_line = get_line(editor_string, str_pos);
-		int line_pos     = get_line_pos(editor_string, str_pos);
-		mvprintw(1 + current_line, line_pos, "%c", editor_string[str_pos]);
-		move(1 + current_line, editor_pos);
-		if (str_pos > str_len+1) break;
-		str_pos++;
-	}
+	int str_len        = strlen(editor_string);
+	int current_line   = get_line(editor_string, 0);
+	int line_pos       = get_line_pos(editor_string, 0);
+	int line_edit_pos  = get_line_pos(editor_string, editor_pos);
+	
+	attron(COLOR_PAIR(2));
+		fill(15);
+		mvprintw(15, 0, "Buffer Name: test.c | Buffer Position: %d | Buffer Length: %d | Current Line: %d", editor_pos, str_len, current_line);
+	attroff(COLOR_PAIR(2));
+	
+	attron(COLOR_PAIR(3));
+		mvprintw(1 + current_line, line_pos, "%s", editor_string);
+		move(1 + current_line, line_edit_pos);
+	attroff(COLOR_PAIR(3));
+	
 }
 
 int lines(char * string)
@@ -196,7 +219,7 @@ int get_line(char * string, int epos)
 		j++;
 	}
 }
-//HHello
+
 int get_line_pos(char * string, int epos)
 {
 	int str_pos = 0, x_pos = 0;
