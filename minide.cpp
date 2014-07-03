@@ -1,10 +1,6 @@
 #include <ncurses.h>
 #include <string.h> 
 
-const char * words[] = {
-	"This", "is", "a", "list", "of", "words!"
-};
-
 const char * modes[] = {
 	"[0] Editor", "[1] Keypress"
 };
@@ -116,10 +112,8 @@ void mode_keypress(int b)
 void mode_editor(int b)
 {
 	int length = strlen(editor_string);
-	if (b == CTRL_X)
+	if (b != CTRL_X) // CTRL+X pressed? if statement
 	{
-		return;
-	}
 	if (b == BKSPACE)
 	{
 		if (length > 0)
@@ -160,7 +154,7 @@ void mode_editor(int b)
 			editor_string[editor_pos] = b;
 			editor_string[editor_pos + 1] = '\0';
 		} else {
-			for (int i = strlen(editor_string); i > editor_pos - 1; i--)
+			for (int i = strlen(editor_string); i > editor_pos - 1; i-=2)
 			{
 				editor_string[i + 1] = editor_string[i];
 			}
@@ -169,19 +163,26 @@ void mode_editor(int b)
 		}
 		editor_pos++;
 	}
+	} // End CTRL+X pressed? if statement
 	
 	int str_len        = strlen(editor_string);
-	int current_line   = get_line(editor_string, 0);
+	int current_line   = get_line(editor_string, editor_pos);
 	int line_pos       = get_line_pos(editor_string, 0);
 	int line_edit_pos  = get_line_pos(editor_string, editor_pos);
+	int line_count     = lines(editor_string);
+	const char * s1          = "Buffer Name: ";
+	const char * s2          = "Buffer Position: ";
+	const char * s3          = "Buffer Length: ";
+	const char * s4          = "Current Line: ";
+	const char * s5          = "Line Count: ";
 	
 	attron(COLOR_PAIR(2));
 		fill(15);
-		mvprintw(15, 0, "Buffer Name: test.c | Buffer Position: %d | Buffer Length: %d | Current Line: %d", editor_pos, str_len, current_line);
+		mvprintw(15, 0, "%stest.c | %s%d | %s%d | %s%d, %s%d", s1, s2, editor_pos, s3, str_len, s4, current_line, s5, line_count);
 	attroff(COLOR_PAIR(2));
 	
 	attron(COLOR_PAIR(3));
-		mvprintw(1 + current_line, line_pos, "%s", editor_string);
+		mvprintw(1, line_pos, "%s", editor_string);
 		move(1 + current_line, line_edit_pos);
 	attroff(COLOR_PAIR(3));
 	
