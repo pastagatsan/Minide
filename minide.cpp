@@ -111,10 +111,11 @@ void mode_keypress(int b)
 
 void mode_editor(int b)
 {
+	mvprintw(25, 0, "%d", KEY_BACKSPACE);
 	int length = strlen(editor_string);
 	if (b != CTRL_X) // CTRL+X pressed? if statement
 	{
-	if (b == BKSPACE)
+	if (b == KEY_BACKSPACE || b == BKSPACE)
 	{
 		if (length > 0)
 		{
@@ -170,15 +171,15 @@ void mode_editor(int b)
 	int line_pos       = get_line_pos(editor_string, 0);
 	int line_edit_pos  = get_line_pos(editor_string, editor_pos);
 	int line_count     = lines(editor_string);
-	const char * s1          = "Buffer Name: ";
-	const char * s2          = "Buffer Position: ";
-	const char * s3          = "Buffer Length: ";
+	const char * s1          = "File Name: ";
+	const char * s2          = "Cursor Position: ";
+	const char * s3          = "String Length: ";
 	const char * s4          = "Current Line: ";
 	const char * s5          = "Line Count: ";
 	
 	attron(COLOR_PAIR(2));
 		fill(15);
-		mvprintw(15, 0, "%stest.c | %s%d | %s%d | %s%d, %s%d", s1, s2, editor_pos, s3, str_len, s4, current_line, s5, line_count);
+		mvprintw(15, 0, "%stest.c | %s%d | %s%d | %s%d | %s%d", s1, s2, editor_pos, s3, str_len, s4, current_line, s5, line_count);
 	attroff(COLOR_PAIR(2));
 	
 	attron(COLOR_PAIR(3));
@@ -226,8 +227,9 @@ int get_line_pos(char * string, int epos)
 	int str_pos = 0, x_pos = 0;
 	while (true)
 	{
-		if (string[str_pos] == '\n') x_pos = 0;
-		if (x_pos == epos) return x_pos;
+		if (string[str_pos] == '\n') x_pos = -1;
+		if (str_pos == epos) return x_pos;
 		x_pos++;
+		str_pos++;
 	}
 }
